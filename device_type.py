@@ -5,7 +5,7 @@ import pynetbox
 import urllib3
 
 # Đọc dữ liệu file xlsx để tìm ra list các device types
-file_path = 'test.xlsx'
+file_path = 'newform.xlsx'
 df = pd.read_excel(file_path, sheet_name='New form')
 
 # Lấy ra danh sách các device types từ file xlsx
