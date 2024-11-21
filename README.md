@@ -2,6 +2,39 @@
 Công cụ import dữ liệu vào netbox tự động
 
 # Hướng dẫn sử dụng
+Tool được sử dụng để kiểm tra các devicetypes hiện đang có trong 1 file xlsx nhưng không có trên NetBox.
+
+Có thể sử dụng đa nên tảng như *Windows*, *Linux*, *MacOS* một cách dễ dàng với **Python 3.0+**
+## Hướng dẫn cài đặt
+### Đối với Windows:
+Tải xuống file code tại [đây](https://github.com/hocchudong/netbox-import-tool)
+
+Sử dụng Visual Studio Code hoặc trình soạn thảo code Python.
+
+Mở Terminal, chạy câu lệnh sau để cài đặt các thư viện cần thiết:
+```
+pip install -r requirement.txt
+```
+### Đối với Linux
+- Đối với các hệ điều hành tương tự Ubuntu:
+```
+sudo apt update && sudo apt upgrade
+
+sudo apt install python3 python3-pip
+```
+- Đối với các hệ điều hành tương tự CentOS
+```
+sudo yum update && sudo yum upgrade
+
+sudo apt install python3 python3-pip
+```
+- Tạo môi trường ảo và cài đặt các thư viện cần thiết
+```
+python3 -m venv env                     # Tạo môi trường ảo
+source env/bin/activate                 # Kích hoạt môi trường
+pip install -r requirements.txt         # Cài đặt môi trường
+```
+
 ## Config
 Trước tiên, hãy cài đặt các thư viện yêu cầu trong `requirement.txt`
 
