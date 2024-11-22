@@ -53,3 +53,6 @@ Sau khi khởi chạy, Tool sẽ đưa ra danh sách các devicetype hiện có 
 - Chọn `2` để thêm đơn giản với các thông tin nhập vào
 - Chọn `3` để thêm tự động với các thông tin cơ bản.
 
+Mẫu đầu ra khi khởi chạy thành công
+
+![](/Anh/Screenshot_986.png)
