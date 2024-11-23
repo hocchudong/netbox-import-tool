@@ -3,17 +3,18 @@ import pandas as pd
 import re
 import pynetbox
 import urllib3
+import config
 
 # Đọc dữ liệu file xlsx để tìm ra list các device types
-file_path = 'import_device_type.xlsx'
-df = pd.read_excel(file_path, sheet_name='New form')
+file_path = config.file_path
+df = pd.read_excel(file_path, sheet_name=config.sheet_name)
 
 # Lấy ra danh sách các device types từ file xlsx
 device_types_in_file = df['Device Types'].dropna().drop_duplicates().tolist() 
 
 # Thiết lập thông tin kết nối tới NetBox
-NETBOX_URL = 'https://www.netboxlab.local'
-NETBOX_TOKEN = '94c41d00fafaaf2132ab3abe97d03e57e5183168'
+NETBOX_URL = config.NETBOX_URL
+NETBOX_TOKEN = config.NETBOX_TOKEN
 # Kết nối tới NetBox
 nb = pynetbox.api(NETBOX_URL, token=NETBOX_TOKEN)
 nb.http_session.verify = False                                      
