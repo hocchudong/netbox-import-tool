@@ -1,0 +1,11 @@
+role,manufacturer,device_type,status,site,name,tenant,serial,rack,position,face
+Switch,Juniper,QFX-EM-4Q,active,VNPT NTL,SW Juniper QFX-EM-4Q,HTV,VG3716200004,Rack 01,42,front
+Firewall,Fortigate,Fortigate 40F,active,VNPT NTL,FW VPN,HTV,T31SASD,Rack 01,40,front
+Firewall,Fortigate,Fortigate 3700D,active,VNPT NTL,FW Core,HTV,TJJ13123,Rack 01,39,front
+Switch,Cisco,Nexus 3132,active,VNPT NTL,SW Self Service,HTV,T31238Q,Rack 01,35,front
+Switch,Cisco,Nexus 3132,active,VNPT NTL,SW Storage 01,HTV,T12123CS,Rack 01,34,front
+Switch,Cisco,Nexus 3132,active,VNPT NTL,SW Storage 02,HTV,TVB123DS,Rack 01,32,front
+Switch,Cisco,Nexus 3132,active,VNPT NTL,SW Storage 03,HTV,SVS12S3,Rack 01,30,front
+Server,Dell,PowerEdge R630,active,VNPT NTL,SRV Controller VNPT 02,HTV,T312S3,Rack 01,27,front
+Server,Dell,PowerEdge R630,active,VNPT NTL,SRV Controller VNPT 03,HTV,UGS1231F,Rack 01,25,front
+Server,Dell,PowerEdge R630,active,VNPT NTL,SRV Controller VNPT 01,HTV,HAV2131D,Rack 01,23,front
