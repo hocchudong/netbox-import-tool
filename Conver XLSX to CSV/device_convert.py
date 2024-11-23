@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Đường dẫn tới file Excel
-file_path = 'test.xlsx'
+file_path = 'device_convert_input.xlsx'
 
 # Đọc dữ liệu từ sheet "Input"
 df = pd.read_excel(file_path, sheet_name='Input')
