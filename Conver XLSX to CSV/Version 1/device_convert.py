@@ -1,10 +1,11 @@
 import pandas as pd
+import config
 
 # Đường dẫn tới file Excel
-file_path = 'device_convert_input.xlsx'
+file_path = config.file_path
 
 # Đọc dữ liệu từ sheet "Input"
-df = pd.read_excel(file_path, sheet_name='Input')
+df = pd.read_excel(file_path, sheet_name=config.sheet_name)
 df.columns = df.columns.str.strip()  # Xóa khoảng trắng ở tên cột
 
 # Kiểm tra xem cột Rack có giá trị hay không
@@ -54,7 +55,7 @@ else:
     df_csv['face'] = 'front'         # Face mặc định
 
     # Lưu dữ liệu ra file CSV
-    output_file_path = 'output_file1.csv'
+    output_file_path = config.output_file_path
     df_csv.to_csv(output_file_path, index=False)
 
     print(f"File CSV đã được lưu thành công tại: {output_file_path}")
