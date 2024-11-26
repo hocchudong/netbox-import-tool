@@ -64,11 +64,11 @@ chmod +x device_convert_new.py # cấp quyền khởi chạy
 
 Mẫu đầu ra khi khởi chạy thành công chính là file csv của bạn
 
-Ví dụ: Khi bạn có 1 Input như file (`sample_input_for_convert.xlsx`)[sample_input_for_convert.xlsx] 
+Ví dụ: Khi bạn có 1 Input như file [`sample_input_for_convert.xlsx`](sample_input_for_convert.xlsx) 
 
 ![](/Anh/Screenshot_988.png)
 
-Bạn sẽ nhận được file `output_M04_233440_20241126.csv` như sau:
+Bạn sẽ nhận được file [`output_M04_233440_20241126.csv`](output_M04_233440_20241126.csv) như sau:
 
 ![](/Anh/Screenshot_989.png)
 
