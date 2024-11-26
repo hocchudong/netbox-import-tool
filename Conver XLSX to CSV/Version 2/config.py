@@ -1,7 +1,10 @@
+# Enter file path here
 file_path = 'sample_input_for_conver.xlsx'
 
+# Enter sheet name here
 sheet_name = 'Input'
 
-output_file_path = 'output_file2.csv'
+# Enter some default value here
+status = 'active'
 
 site = 'VNPT NTL'
