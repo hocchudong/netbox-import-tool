@@ -5,15 +5,15 @@ import config
 # Đường dẫn tới file Excel
 file_path = config.file_path
 
-# Đọc dữ liệu từ sheet "Input"
+# Đọc dữ liệu từ sheet
 df = pd.read_excel(file_path, sheet_name=config.sheet_name)
 df.columns = df.columns.str.strip()  # Xóa khoảng trắng ở tên cột
 
-# Kiểm tra xem cột Name có giá trị hay không
+# Kiểm tra xem cột Rack có giá trị hay không
 if df['Name'].dropna().empty:
-    print("Error while processing! Please try again or contact me!")
+    print("Cột 'Name' không có giá trị. Dừng xử lý.")
 else:
-    # Hàm xác định vai trò dựa trên giá trị cột Role
+    # Hàm xác định vai trò dựa trên giá trị cột Rack
     def get_role(role_value):
         if isinstance(role_value, str):  # Kiểm tra giá trị không phải NaN và là chuỗi
             if role_value.lower() == 'fw':
@@ -30,34 +30,30 @@ else:
 
     # Hàm xử lý dữ liệu cột date
     def date_transfer(date_str):
+        # Kiểm tra nếu date_str là kiểu Timestamp, chuyển nó thành chuỗi trước
         if isinstance(date_str, pd.Timestamp):
             date_str = date_str.strftime('%d/%m/%Y')
+        # Chuyển đổi chuỗi thành đối tượng datetime
         date_obj = datetime.strptime(date_str, '%d/%m/%Y')
+        # Chuyển đối tượng datetime thành chuỗi với định dạng mới
         return date_obj.strftime('%Y-%m-%d')
 
-    # Hàm xử lý dữ liệu cột Name khi bị trùng
+    # Hàm xử lý trùng tên
     def handle_duplicate_names(df, name_col, rack_col, position_col):
+        # Đếm tần suất xuất hiện của các giá trị trong cột Name
         name_counts = df[name_col].value_counts()
-        duplicates = name_counts[name_counts > 1].index  # Các giá trị bị trùng
+        duplicates = name_counts[name_counts > 1].index  # Lấy các giá trị Name bị trùng
 
-        def make_unique_name(row):
-            if row[name_col] in duplicates:
-                return f"{row[name_col]}_{row[rack_col]}_{row[position_col]}"
-            return row[name_col]
+        # Xử lý từng giá trị bị trùng
+        for name in duplicates:
+            duplicate_rows = df[df[name_col] == name]  # Lọc các dòng trùng tên
+            for idx, row in enumerate(duplicate_rows.index):
+                rack_value = df.at[row, rack_col]  # Giá trị Rack
+                position_value = df.at[row, position_col]  # Giá trị số U
+                # Gán tên mới với thông tin Rack và Position
+                df.at[row, name_col] = f"{name}_{rack_value}_U{position_value}"
 
-        return df.apply(make_unique_name, axis=1)
-
-    # Hàm trích xuất tên Rack từ chuỗi
-    def extract_rack_name(rack_value):
-        if isinstance(rack_value, str) and "=" in rack_value:
-            return rack_value.split("=")[-1]  # Lấy phần sau dấu "="
-        return "Unknown"  # Giá trị mặc định nếu không hợp lệ
-
-    # Xử lý cột Rack để lấy tên Rack
-    df['Rack_Name'] = df['Rack'].apply(extract_rack_name)
-
-    # Xử lý cột Name để đảm bảo không bị trùng
-    df['Name'] = handle_duplicate_names(df, name_col='Name', rack_col='Rack_Name', position_col='U')
+        return df
 
     # Thêm cột `role` vào DataFrame
     df['role'] = df['Role'].apply(get_role)
@@ -66,8 +62,15 @@ else:
     # Lọc bỏ các dòng có giá trị trống ở cột `Role` và `role`
     df = df.dropna(subset=['Role', 'role'])
 
+    # Xử lý trùng tên trong cột Name
+    df = handle_duplicate_names(df, name_col='Name', rack_col='Rack', position_col='U')
+
     # Định nghĩa các cột đầu ra cần có
-    output_columns = ['role', 'manufacturer', 'device_type', 'status', 'site', 'name', 'serial', 'rack', 'position', 'face', 'comments', 'cf_contract_number', 'cf_year_of_investment']
+    output_columns = [
+        'role', 'manufacturer', 'device_type', 'status', 'site', 'name',
+        'serial', 'rack', 'position', 'face', 'comments',
+        'cf_contract_number', 'cf_year_of_investment'
+    ]
 
     # Chuẩn bị DataFrame đầu ra
     df_csv = pd.DataFrame(columns=output_columns)
@@ -85,19 +88,13 @@ else:
     df_csv['rack'] = df['Rack']
 
     # Gán giá trị mặc định cho các cột còn lại
-    df_csv['status'] = config.status # Trạng thái mặc định
+    df_csv['status'] = config.status    # Trạng thái mặc định
     df_csv['site'] = config.site     # Site mặc định
     df_csv['face'] = 'front'         # Face mặc định
 
-    # Lấy giá trị thời gian hiện tại
-    current_time = datetime.now().strftime("%H%M%S")
-    current_date = datetime.now().strftime("%Y%m%d")
+    # Lưu dữ liệu ra file CSV với tên đầu ra theo yêu cầu
+    current_time = datetime.now().strftime('%H%M%S_%d%m%Y')
+    output_file_path = f"output_{df['Rack'][0]}_{current_time}.csv"
+    df_csv.to_csv(output_file_path, index=False)
 
-    # Lấy giá trị rack_name từ cột Rack_Name
-    rack_name = df['Rack'].iloc[0]  
-
-    # Đặt tên file với định dạng 
-    output_file_name = f"output_{rack_name}_{current_time}_{current_date}.csv"
-    df_csv.to_csv(output_file_name, index=False)
-
-    print(f"Complete save: {output_file_name}")
+    print(f"File CSV đã được lưu thành công tại: {output_file_path}")
