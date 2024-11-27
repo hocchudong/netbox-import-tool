@@ -2,10 +2,11 @@ import pandas as pd
 from datetime import datetime
 import config
 
+
 # Đường dẫn tới file Excel
 file_path = config.file_path
 
-# Đọc dữ liệu từ sheet
+# Đọc dữ liệu từ sheet "Input"
 df = pd.read_excel(file_path, sheet_name=config.sheet_name)
 df.columns = df.columns.str.strip()  # Xóa khoảng trắng ở tên cột
 
@@ -40,14 +41,14 @@ else:
 
     # Hàm xử lý trùng tên
     def handle_duplicate_names(df, name_col, rack_col, position_col):
-        # Đếm tần suất xuất hiện của các giá trị trong cột Name
+        # Lấy các giá trị Name bị trùng
         name_counts = df[name_col].value_counts()
-        duplicates = name_counts[name_counts > 1].index  # Lấy các giá trị Name bị trùng
+        duplicates = name_counts[name_counts > 1].index  
 
         # Xử lý từng giá trị bị trùng
         for name in duplicates:
             duplicate_rows = df[df[name_col] == name]  # Lọc các dòng trùng tên
-            for idx, row in enumerate(duplicate_rows.index):
+            for  row in duplicate_rows.index:
                 rack_value = df.at[row, rack_col]  # Giá trị Rack
                 position_value = df.at[row, position_col]  # Giá trị số U
                 # Gán tên mới với thông tin Rack và Position
@@ -55,11 +56,8 @@ else:
 
         return df
 
-    # Thêm cột `role` vào DataFrame
     df['role'] = df['Role'].apply(get_role)
-    # Thêm cột `year of investment` vào DataFrame
     df['cf_year_of_investment'] = df['Year of Investment'].dropna().apply(date_transfer)
-    # Lọc bỏ các dòng có giá trị trống ở cột `Role` và `role`
     df = df.dropna(subset=['Role', 'role'])
 
     # Xử lý trùng tên trong cột Name
@@ -72,10 +70,8 @@ else:
         'cf_contract_number', 'cf_year_of_investment'
     ]
 
-    # Chuẩn bị DataFrame đầu ra
     df_csv = pd.DataFrame(columns=output_columns)
 
-    # Lấp dữ liệu từ DataFrame gốc vào các cột tương ứng
     df_csv['role'] = df['role']
     df_csv['manufacturer'] = df['Manufacturer']
     df_csv['device_type'] = df['Device Type']
@@ -87,10 +83,10 @@ else:
     df_csv['cf_contract_number'] = df['Contract Number']
     df_csv['rack'] = df['Rack']
 
-    # Gán giá trị mặc định cho các cột còn lại
-    df_csv['status'] = config.status    # Trạng thái mặc định
-    df_csv['site'] = config.site     # Site mặc định
-    df_csv['face'] = 'front'         # Face mặc định
+    
+    df_csv['status'] = config.status 
+    df_csv['site'] = config.site     
+    df_csv['face'] = 'front'         
 
     # Lưu dữ liệu ra file CSV với tên đầu ra theo yêu cầu
     current_time = datetime.now().strftime('%H%M%S_%d%m%Y')
