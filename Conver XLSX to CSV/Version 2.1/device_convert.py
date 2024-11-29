@@ -22,11 +22,11 @@ else:
                 return 'Switch'
             elif role_value.lower() == 'svr':
                 return 'Server'
-            elif role_value.lower() == 'r':
+            elif role_value.lower() == 'router':
                 return 'Router'
             else:
-                return 'Unknown'
-        return None  # Trả về None nếu giá trị trống
+                return role_value
+        return None  
 
     # Hàm xử lý trùng tên
     def handle_duplicate_names(df, name_col, rack_col, position_col):
@@ -82,7 +82,8 @@ else:
 
     # Lưu dữ liệu ra file CSV với tên đầu ra theo yêu cầu
     current_time = datetime.now().strftime('%H%M%S_%d%m%Y')
-    output_file_path = f"output_{df['Rack'][0]}_{current_time}.csv"
+    #output_file_path = f"output_{df['Rack'][0]}_{current_time}.csv"
+    output_file_path = f"output_{current_time}.csv"
     df_csv.to_csv(output_file_path, index=False)
 
     print(f"File CSV đã được lưu thành công tại: {output_file_path}")
