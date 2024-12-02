@@ -13,25 +13,25 @@ NetBox_Token = config.NetBox_Token
 sitename = config.sitename
 
 
-def file_check():
-    if os.path.exists(filepath):
+def file_check(input_file, input_sheet_name):
+    if os.path.exists(input_file):
         global df
-        df = pd.read_excel(filepath, sheet_name=sheetname)
+        df = pd.read_excel(input_file, input_sheet_name)
         print("File Check complete!")
     else:
-        print(f"File '{filepath}' doesn't exist!")
+        print(f"File '{input_file}' doesn't exist!")
         exit()
         
-def netbox_connection_check():
+def netbox_connection_check(netboxurl,netboxtoken):
     try:
         response = requests.get(
-            NetBox_URL,
-            headers={"Authorization": f"Token {NetBox_Token}"},
+            netboxurl,
+            headers={"Authorization": f"Token {netboxtoken}"},
             timeout=20
         )
         if response.status_code == 200:
             global nb
-            nb = pynetbox.api(NetBox_URL, token=NetBox_Token)
+            nb = pynetbox.api(netboxurl, token=netboxtoken)
             nb.http_session.verify = False                                      
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
             print("Connection Check complete!")
@@ -39,6 +39,7 @@ def netbox_connection_check():
             print(f"Connection Error: {response.status_code} - {response.reason}")
     except requests.exceptions.RequestException as e:
         print(f"Error: Can't connect NetBox. More: {e}")
+        exit()
         
 def device_types_check():
     # Lấy ra danh sách các device types từ file xlsx
