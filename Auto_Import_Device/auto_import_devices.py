@@ -22,24 +22,35 @@ def file_check(input_file, input_sheet_name):
         print(f"File '{input_file}' doesn't exist!")
         exit()
         
-def netbox_connection_check(netboxurl,netboxtoken):
+def netbox_connection_check(netboxurl, netboxtoken):
     try:
         response = requests.get(
             netboxurl,
             headers={"Authorization": f"Token {netboxtoken}"},
-            timeout=20
-        )
+            timeout=20,
+            verify=False,
+        )        
         if response.status_code == 200:
             global nb
             nb = pynetbox.api(netboxurl, token=netboxtoken)
-            nb.http_session.verify = False                                      
+            nb.http_session.verify = False  
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
             print("Connection Check complete!")
         else:
             print(f"Connection Error: {response.status_code} - {response.reason}")
+            exit(1) 
+    except requests.exceptions.SSLError as e:
+        print(f"SSL Error: Can't verify SSL certificate. Details: {e}")
+        exit(1)
+    except requests.exceptions.ConnectionError as e:
+        print(f"Connection Error: Unable to reach NetBox. Details: {e}")
+        exit(1)
+    except requests.exceptions.Timeout as e:
+        print(f"Timeout Error: Connection to NetBox timed out. Details: {e}")
+        exit(1)
     except requests.exceptions.RequestException as e:
-        print(f"Error: Can't connect NetBox. More: {e}")
-        exit()
+        print(f"General Error: An unexpected error occurred. Details: {e}")
+        exit(1)
         
 def device_types_check():
     # Lấy ra danh sách các device types từ file xlsx
