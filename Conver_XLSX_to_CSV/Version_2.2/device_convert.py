@@ -8,6 +8,7 @@ sheet = workbook.active
 data = [[cell.value for cell in row] for row in sheet.iter_rows(min_row=2)]
 columns = [cell.value for cell in sheet[1]]  
 df = pd.DataFrame(data, columns=columns)
+
 df = df.dropna(subset=['Name'], how='all')
 
 for merged_cells in sheet.merged_cells.ranges:
