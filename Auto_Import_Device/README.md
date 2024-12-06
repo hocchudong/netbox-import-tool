@@ -93,4 +93,8 @@ Dữ liệu của 2 cột trong mục ***CustomFields***: **Contract Number** v�
 
 Mặc định các DeviceTypes mới khi được khởi tạo tự động sẽ có số U là 1 và phiên bản 1.0 sẽ chỉ có thể làm việc với file dữ liệu có các Device Type là 1 dòng. 
 
-Tool sẽ được cập nhật để lấy các cột Merge sớm nhất có thể!
+## Lịch sử phiên bản:
+Version 1: Chưa có khả năng đọc file có data bị merge
+
+Version 2: Có khả năng đọc file có data bị merge
+
