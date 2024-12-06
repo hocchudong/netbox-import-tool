@@ -1,0 +1,8 @@
+role,manufacturer,device_type,status,site,name,serial,rack,position,face,comments,cf_contract_number,cf_years_of_investment
+Switch,Dell,PowerSwitch S5248F-ON,active,VNPT NTL,Switch Demo,25TE11ST,TEST,42,front,TEST 01,001/DEMO/T-EST01,25/11/2024
+Server,Dell,PowerSwitch S5248F-ON,active,VNPT NTL,Server Demo,25TE12ST,TEST,40,front,TEST 02,001/DEMO/T-EST02,20/11/2022
+Server,Test,Test,active,VNPT NTL,Test Demo,ABC123D,TEST,39,front,test 03,001/DEMO/T-EST03,25/11/2022
+Server,Test,Test 2,active,VNPT NTL,Test Demo 1,ABC123D2,TEST,38,front,test 04,001/DEMO/T-EST04,25/11/2022
+Server,Test,Test3,active,VNPT NTL,Test Demo 2,ABC124D3,TEST,36,front,test 05,001/DEMO/T-EST05,25/11/2022
+Server,Test,Test4,active,VNPT NTL,Test Demo 3,ABC124D4,TEST,34,front,test 06,001/DEMO/T-EST06,25/11/2022
+Server,Test,Test 5,active,VNPT NTL,Test Demo 4,ABC123D5,TEST,31,front,test 04,001/DEMO/T-EST07,25/11/2022
