@@ -5,6 +5,8 @@ import requests
 import re
 import urllib3
 import config
+import warnings
+from urllib3.exceptions import InsecureRequestWarning
 
 filepath = config.filepath
 sheetname = config.sheetname
@@ -21,9 +23,11 @@ def file_check(input_file, input_sheet_name):
     else:
         print(f"File '{input_file}' doesn't exist!")
         exit()
-        
+     
 def netbox_connection_check(netboxurl, netboxtoken):
     try:
+        warnings.simplefilter("ignore", InsecureRequestWarning)  
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         response = requests.get(
             netboxurl,
             headers={"Authorization": f"Token {netboxtoken}"},
@@ -33,8 +37,8 @@ def netbox_connection_check(netboxurl, netboxtoken):
         if response.status_code == 200:
             global nb
             nb = pynetbox.api(netboxurl, token=netboxtoken)
-            nb.http_session.verify = False  
-            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+            nb.http_session.verify = False
+            
             print("Connection Check complete!")
         else:
             print(f"Connection Error: {response.status_code} - {response.reason}")
@@ -54,7 +58,7 @@ def netbox_connection_check(netboxurl, netboxtoken):
         
 def device_types_check():
     # Lấy ra danh sách các device types từ file xlsx
-    device_types_in_file = df['Device Type'].dropna().tolist() 
+    device_types_in_file = df['Device Type'].dropna().drop_duplicates().tolist() 
     
     # Khởi tạo mảng chứa
     device_types_not_in_netbox = []
@@ -79,7 +83,7 @@ def device_types_check():
             print("\nPlease Add Device Types manually!")
             exit()
         elif choice == "2":
-            print("You chose to Add Device Automatically with sample information")
+            print("You chose to Add Device Type Automatically with sample information")
             print("Trying to Add Automatically...")
 
             # Thêm device types chưa có trong NetBox
@@ -90,24 +94,28 @@ def device_types_check():
                     if matching_rows.empty:
                         print(f"Device type {device_type} not found in Excel. Skipping...")
                         continue
-                    
+
                     row = matching_rows.iloc[0]
                     manufacturer_name = row['Manufacturer'].strip()
+                    u_height = 1
 
-                    # Kiểm tra manufacturer tồn tại trên NetBox
+                    # Kiểm tra manufacturer tồn tại hoặc tạo mới
+                    # Kiểm tra xem manufacturer đã tồn tại trên NetBox chưa
                     manufacturer_records = nb.dcim.manufacturers.filter(name=manufacturer_name)
+
+                    # Duyệt qua tất cả manufacturers trả về
                     manufacturer = None
                     for record in manufacturer_records:
                         manufacturer = record
                         break  # Lấy manufacturer đầu tiên tìm thấy
-                    
+
                     if manufacturer:
                         print(f"Using existing manufacturer: {manufacturer.name} (ID: {manufacturer.id})")
                     else:
                         # Tạo slug hợp lệ từ manufacturer_name
                         manufacturer_slug = re.sub(r'[^a-z0-9-]', '-', manufacturer_name.lower()).strip('-')
 
-                        # Tạo manufacturer mới nếu không tồn tại
+                        # Nếu không có manufacturer, tạo mới
                         manufacturer = nb.dcim.manufacturers.create(
                             name=manufacturer_name,
                             slug=manufacturer_slug  
@@ -117,20 +125,22 @@ def device_types_check():
                     # Tạo slug hợp lệ cho device type
                     device_type_slug = re.sub(r'[^a-z0-9-]', '-', device_type.lower()).strip('-')
 
-                    # Thêm device type mới vào NetBox
+                    # Thêm device type mới
                     new_device_type = nb.dcim.device_types.create({
                         'model': device_type,
                         'slug': device_type_slug,
                         'manufacturer': manufacturer.id,
-                        'u_height': 1,
+                        'u_height': u_height,
                         'is_full_depth': 'yes',
                     })
-
                     print(f"Automatically added: {device_type}")
-
                 except Exception as e:
                     print(f"Error while adding {device_type}: {e}, Data: {row.to_dict()}")
                     exit()
+            print("Device Types check complete!")
+        else:
+            print("Please choose 1 or 2!")
+            device_types_check()
     else:
         print("Device Types check complete!")
         
