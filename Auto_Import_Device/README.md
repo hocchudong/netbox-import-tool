@@ -84,6 +84,10 @@ Sau khi việc thực thi hoàn tất, mẫu kết quả sẽ như sau:
 
 ![](/Anh/Screenshot_990.png)
 
+Kiểm tra trên NetBox:
+
+![](/Anh/Screenshot_992.png)
+
 ## Thêm
 Nếu có bất kỳ trường hợp lỗi sử dụng, vui lòng góp ý ở mục Issue của GitHub
 
@@ -93,8 +97,13 @@ Dữ liệu của 2 cột trong mục ***CustomFields***: **Contract Number** v�
 
 Mặc định các DeviceTypes mới khi được khởi tạo tự động sẽ có số U là 1 và phiên bản 1.0 sẽ chỉ có thể làm việc với file dữ liệu có các Device Type là 1 dòng. 
 
+Cột **CustomFields** của NetBox ở **Version 3**:
+
+![](/Anh/Screenshot_996.png)
 ## Lịch sử phiên bản:
 Version 1: Chưa có khả năng đọc file có data bị merge
 
 Version 2: Có khả năng đọc file có data bị merge
+
+Version 3: Tối ưu lại chương trình, thêm 1 số hàm kiểm tra lỗi, định dạng file mới, dữ liệu mới
 

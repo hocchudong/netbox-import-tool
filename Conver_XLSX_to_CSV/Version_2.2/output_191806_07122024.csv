@@ -1,0 +1,19 @@
+role,manufacturer,device_type,status,site,name,serial,rack,position,face,description,cf_device_owner,cf_contract_number,cf_years_of_investment
+Switch,Dell,PowerSwitch S5248F-ON,active,IDC NTL,DELL S5248F-ON ,64DR363,M04,42,front,,System,002/21/HCD-001/KOUY,07/08/2021
+Switch,Cisco,Nexus 9336C-FX2,active,IDC NTL, Nexus 9300 - C9336C,FD025230ZC2,M04,38,front,,System,992/21/HTV-001/qwtu,8/2021
+Switch,Cisco,Nexus 9336C-FX2,active,IDC NTL,Nexus 9300 - C9336C,FD025250F3P,M04,36,front,,System,992/21/HTV-001/qwtu,8/2021
+Switch,Cisco,Nexus 93180YC-EX,active,IDC NTL,Nexus 9300 - C93180YC,FD025270GXF,M04,34,front,,System,992/21/HTV-001/qwtu,8/2021
+Switch,Cisco,Catalyst 9200L-24P-4G,active,IDC NTL,Sw Out of Band,JAE24450F2F,M04,30,front,Thiết bị thuộc quản lý phòng mạng,Network,,8/2021
+Switch,Cisco,Nexus 93240YC-FX2,active,IDC NTL,VCF_N9K-C93240YCFX2_02,FDO280905AK,M04,27,front,NamBV1 lắp đặt ngày 02/10/2024 theo tờ trình số 06 bbbg 35,Cloud,,2024-10-02 00:00:00
+Switch,Cisco,Nexus 93240YC-FX2,active,IDC NTL,VCF_N9K-C93240YCFX2_01,FDO280905D0,M04,25,front,NamBV1 lắp đặt ngày 02/10/2024 theo tờ trình số 06 bbbg 35,Cloud,,2024-10-02 00:00:00
+Server,Dell,PowerEdge R640,active,IDC NTL,R640 (Type 4),2G7XHF3,M04,24,front,Chuyển từ U11-F2-DC2 ngày 11/04/2023,System,68686/21/bbyy-678/ASDF,2023-04-11 00:00:00
+Server,Dell,PowerEdge R740,active,IDC NTL,DELL R740,JNSVHF3,M04,20,front,,System,002/21/HCD-001/KOUY,07/08/2021
+Server,Dell,PowerEdge R640,active,IDC NTL,DELL R640 ,GNSVHF3,M04,19,front,,System,002/21/HCD-001/KOUY,07/08/2021
+Server,Dell,PowerEdge R750,active,IDC NTL,VxRAIL08,26T54F3,M04,15,front,,System,002/21/HCD-001/KOUY,07/08/2021
+Server,Dell,PowerEdge R750,active,IDC NTL,VxRAIL07,46T54F3,M04,13,front,,System,002/21/HCD-001/KOUY,07/08/2021
+Server,Dell,PowerEdge R750,active,IDC NTL,VxRAIL06,36T54F3,M04,11,front,,System,002/21/HCD-001/KOUY,07/08/2021
+Server,Dell,PowerEdge R750,active,IDC NTL,VxRAIL05,16T54F3,M04,9,front,,System,002/21/HCD-001/KOUY,07/08/2021
+Server,Dell,PowerEdge R750,active,IDC NTL,VxRAIL04,H5T54F3,M04,7,front,,System,002/21/HCD-001/KOUY,07/08/2021
+Server,Dell,PowerEdge R750,active,IDC NTL,VxRAIL03,F5T54F3,M04,5,front,,System,002/21/HCD-001/KOUY,07/08/2021
+Server,Dell,PowerEdge R750,active,IDC NTL,VxRAIL02,66T54F3,M04,3,front,,System,002/21/HCD-001/KOUY,07/08/2021
+Server,Dell,PowerEdge R750,active,IDC NTL,VxRAIL01,86T54F3,M04,1,front,,System,002/21/HCD-001/KOUY,07/08/2021
