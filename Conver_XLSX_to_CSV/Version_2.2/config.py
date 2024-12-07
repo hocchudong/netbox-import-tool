@@ -1,6 +1,6 @@
 from datetime import datetime
 # Nhập đường dẫn tới file
-file_path = 'sample_input.xlsx'
+file_path = 'sample_input_v2.xlsx'
 
 # Nhập một số thông tin về NetBox của bạn
 status = 'active'

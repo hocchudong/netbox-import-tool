@@ -17,10 +17,8 @@ for merged_cells in sheet.merged_cells.ranges:
         merge_height = max_row - min_row + 1
         name_value = sheet.cell(row=min_row, column=min_col).value
         mask = df['Name'] == name_value
-        if merge_height == 2:
-            df.loc[mask, 'U'] = df.loc[mask, 'U'] - 1
-        elif merge_height == 3:
-            df.loc[mask, 'U'] = df.loc[mask, 'U'] - 2
+        if merge_height > 1:
+            df.loc[mask, 'Position'] = df.loc[mask, 'Position'] - (merge_height - 1)
 df = df.drop_duplicates(subset=['Name'], keep='first')
 
 def get_role(role_value):
@@ -53,19 +51,20 @@ df = df.dropna(subset=['Role', 'role'])
 df = handle_duplicate_names(df, name_col='Name', rack_col='Rack', position_col='U')
 output_columns = [
     'role', 'manufacturer', 'device_type', 'status', 'site', 'name',
-    'serial', 'rack', 'position', 'face', 'comments',
+    'serial', 'rack', 'position', 'face', 'description','cf_device_owner',
     'cf_contract_number', 'cf_years_of_investment',
 ]
 
 df_csv = pd.DataFrame(columns=output_columns)
 df_csv['role'] = df['role']
 df_csv['manufacturer'] = df['Manufacturer']
-df_csv['device_type'] = df['Device Type']
+df_csv['device_type'] = df['Type']
 df_csv['serial'] = df['Serial Number']
 df_csv['name'] = df['Name']
-df_csv['position'] = df['U']
+df_csv['position'] = df['Position']
 df_csv['cf_years_of_investment'] = df['Year of Investment']
-df_csv['comments'] = df['Comments']
+df_csv['cf_device_owner']=df['Device Owner']
+df_csv['description'] = df['Description']
 df_csv['cf_contract_number'] = df['Contract Number']
 df_csv['rack'] = df['Rack']
 df_csv['status'] = config.status      
