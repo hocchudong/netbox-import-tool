@@ -277,8 +277,10 @@ def import_device_to_NetBox():
                     "position": position,
                     "status": "active",  
                     "comments": comments,
-                    "contract_number": contract_number,
-                    "year_of_investment": year_of_investment,
+                    "custom_fileds": {
+                        "contract_number": contract_number,
+                        "year_of_investment": year_of_investment
+                    }
                 }
             )
             print(f"Successfully created device: {name}")

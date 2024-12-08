@@ -347,9 +347,11 @@ def import_device_to_NetBox(df):
                     "position": position,
                     "status": config.status,  
                     "description": description,
-                    "device_owner": device_owner,
-                    "contract_number": contract_number,
-                    "year_of_investment": year_of_investment,
+                    "custom_fields": {
+                        "device_owner": device_owner,
+                        "contract_number": contract_number,
+                        "years_of_investment": year_of_investment
+                    }
                 }
             )
             number_of_device_has_been_added+=1

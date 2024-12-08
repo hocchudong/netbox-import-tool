@@ -3,5 +3,4 @@ pandas
 openpyxl
 pynetbox
 requests
-re
 urllib3
