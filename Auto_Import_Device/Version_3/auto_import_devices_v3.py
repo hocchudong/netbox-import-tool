@@ -23,7 +23,7 @@ def file_check(input_file):
         columns = [cell.value for cell in sheet[1]]  
         global df
         df = pd.DataFrame(data, columns=columns)
-        df = df.dropna(subset=['Name'], how='all')
+        #df = df.dropna(subset=['Name'], how='all')
         required_columns = ['Role','Type','Serial Number']
         for index, row in df.iterrows():
             if pd.notna(row['Name']):
@@ -66,31 +66,32 @@ def netbox_connection_check(netboxurl, netboxtoken):
     return None
 
 def handle_duplicate_names(df, name_col, serial_col):
-    df.columns = df.columns.str.strip()
-    df = df.map(lambda x: x.strip() if isinstance(x, str) else x)
     name_counts = df[name_col].value_counts()
-    duplicates = name_counts[name_counts > 1].index  
-    for name in duplicates:
-        duplicate_rows = df[df[name_col] == name]
-        for row in duplicate_rows.index:
-            serial_value = df.at[row,serial_col]
-            df.at[row, name_col] = f"{name}_{serial_value}"
-    return df  
+    duplicates = name_counts[name_counts > 1].index  # Lấy các giá trị Name bị trùng
 
-def excute_merge_data(df):
+    for name in duplicates:
+        duplicate_rows = df[df[name_col] == name].index
+        for i, row in enumerate(duplicate_rows, start=1):
+            #rack_value = df.at[row, rack_col]
+            serial_value = df.at[row, serial_col]
+            df.at[row, name_col] = f"{name}_{serial_value}"
+    return df
+
+def excute_merge_data(df, sheet):
     try:
         df['u_height'] = 1
         for merged_cells in sheet.merged_cells.ranges:
             min_row, min_col, max_row, max_col = merged_cells.min_row, merged_cells.min_col, merged_cells.max_row, merged_cells.max_col
-            if min_col == 3:  
+            if min_col == 3 and max_col == 3:
                 merge_height = max_row - min_row + 1
-                name_value = sheet.cell(row=min_row, column=min_col).value
-                mask = df['Name'] == name_value
-                df.loc[mask, 'u_height'] = merge_height
-                if merge_height > 1:
-                    df.loc[mask, 'Position'] = df.loc[mask, 'Position'] - (merge_height-1)
-        df = df.drop_duplicates(subset=['Name'], keep='first')
-        print("Merge data has been excuted!")
+                merged_rows = list(range(min_row - 2, max_row - 1))  
+                df.loc[merged_rows, 'u_height'] = merge_height
+                if merge_height == 2:
+                    df.loc[merged_rows, 'Position'] = df.loc[merged_rows, 'Position'] - 1
+                elif merge_height == 3:
+                    df.loc[merged_rows, 'Position'] = df.loc[merged_rows, 'Position'] - 2
+                elif merge_height == 6:
+                    df.loc[merged_rows, 'Position'] = df.loc[merged_rows, 'Position'] - 5
         return df
     except Exception as e:
         print(f"Error while excuting merge_data: {e}")
@@ -111,13 +112,11 @@ def device_types_check():
         print("Device Types not in NetBox:")
         print(device_type_not_in_netbox)
         print("\nDo you want to add Device Type automatically?")
-        print("1. Add manual and relaunch later!")
-        print("2. Automatic add with sample value")
-        choice = input("Enter your choice? (1 or 2): ")
-        if choice == '1':
+        choice = input("Enter your choice? (yes/no): ")
+        if choice == 'no':
             print("\nPlease Add Device Types manually!")
             exit()
-        elif choice == "2":
+        elif choice == "yes":
             print("You chose to Add Device Types Automatically with sample information")
             print("Trying to Add Automatically...")
             for device_type in device_type_not_in_netbox:
@@ -305,6 +304,7 @@ def get_rack_id(rack_name):
         return None
     
 def import_device_to_NetBox(df):
+    df = df.dropna(subset=['Name'], how='all')
     df = handle_duplicate_names(df,name_col='Name', serial_col='Serial Number')
     device_names = df['Name'].dropna().tolist()
     number_of_device_in_file = 0
@@ -370,7 +370,7 @@ def main():
         netbox_connection_check(NetBox_URL, NetBox_Token)
         
         print("Step 3: Excuting Merge data...")
-        excute_merge_data(df)
+        excute_merge_data(df=df,sheet=sheet)
 
         print("Step 4: Checking data in NetBox...")
         site_check(site_name=sitename)

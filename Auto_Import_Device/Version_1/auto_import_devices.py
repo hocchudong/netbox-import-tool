@@ -292,7 +292,7 @@ def main():
         # Kiểm tra file đầu vào
         print("Step 1: Checking input file...")
         file_check(filepath, sheetname)
-        
+    
         # Kiểm tra kết nối NetBox
         print("Step 2: Checking NetBox connection...")
         netbox_connection_check(NetBox_URL, NetBox_Token)
