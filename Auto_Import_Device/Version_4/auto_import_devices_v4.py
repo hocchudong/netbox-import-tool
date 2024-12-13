@@ -366,8 +366,13 @@ def device_types_check():
                     all_manufacturer_device_type = df[["Manufacturer","Type"]].dropna()
                     manufacturer_device_type = all_manufacturer_device_type.query(f"Type == '{device_type}'")
                     manufacturer_name = manufacturer_device_type.iloc[0]['Manufacturer']
+                    manufacturer_name = manufacturer_name.strip()
                     manufacturer = nb.dcim.manufacturers.get(name = manufacturer_name)
 
+                    # Kiểm tra xem có tìm thấy manuyfacturers không
+                    if not manufacturer: 
+                        print(f"Error while adding {device_type}: Not found manufactures")
+                        continue
                     # Lấy chiều cao trong list đã tạo
                     device_height = 1 # mặc định height bằng 1 
                     
@@ -388,40 +393,6 @@ def device_types_check():
                     })
 
                     print(f"Automatically added : {new_device_type}")
-                    
-                    # old code
-
-                    # matching_rows = df[df['Type'] == device_type]
-                    # if matching_rows.empty:
-                    #     print(f"Device type {device_type} not found in Excel. Skipping...")
-                    #     continue
-                    # row = matching_rows.iloc[0]
-                    # u_height = row['u_height']
-                    # u_height = int(u_height)
-                    # manufacturer_name = row['Manufacturer'].strip()
-                    # manufacturer_records = nb.dcim.manufacturers.filter(name=manufacturer_name)
-                    # manufacturer = None
-                    # for record in manufacturer_records:
-                    #     manufacturer = record
-                    #     break  
-                    # if manufacturer:
-                    #     print(f"Using existing manufacturer: {manufacturer.name} (ID: {manufacturer.id})")
-                    # else:
-                    #     manufacturer_slug = re.sub(r'[^a-z0-9-]', '-', manufacturer_name.lower()).strip('-')
-                    #     manufacturer = nb.dcim.manufacturers.create(
-                    #         name=manufacturer_name,
-                    #         slug=manufacturer_slug  
-                    #     )
-                    #     print(f"Created new manufacturer: {manufacturer.name} (ID: {manufacturer.id})")
-                    # device_type_slug = re.sub(r'[^a-z0-9-]', '-', device_type.lower()).strip('-')
-                    # new_device_type = nb.dcim.device_types.create({
-                    #     'model': device_type,
-                    #     'slug': device_type_slug,
-                    #     'manufacturer': manufacturer.id,
-                    #     'u_height': u_height,
-                    #     'is_full_depth': 'yes',
-                    # })
-
                     
                 except Exception as e:
                     print(f"Error while adding {device_type}: {e}")
@@ -522,7 +493,7 @@ def import_device_to_NetBox():
 
             if not pd.isna(row['Contract number']):
                 contract_number = row['Contract number']
-
+            
             if not pd.isna(row['Year of Investment']):
                 device_year_of_investment = row['Year of Investment']
                 # convert string to data time format YYYY-MM-DD HH:MM:SS
@@ -530,6 +501,10 @@ def import_device_to_NetBox():
                 formatted_date = date_object.strftime("%Y-%m-%d %H:%M:%S")
                 device_year_of_investment = formatted_date
 
+            # in ra màn hình khi serial number null
+            if pd.isna(row['Serial Number']):
+                print(f"While add device: {device_name} has serial number null")
+            
             new_device = nb.dcim.devices.create(
                 {
                     "name": device_name,
