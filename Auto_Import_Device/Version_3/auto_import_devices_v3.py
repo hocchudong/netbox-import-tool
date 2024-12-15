@@ -90,6 +90,8 @@ def excute_merge_data(df, sheet):
                     df.loc[merged_rows, 'Position'] = df.loc[merged_rows, 'Position'] - 1
                 elif merge_height == 3:
                     df.loc[merged_rows, 'Position'] = df.loc[merged_rows, 'Position'] - 2
+                elif merge_height == 4:
+                    df.loc[merged_rows, 'Position'] = df.loc[merged_rows, 'Position'] - 3
                 elif merge_height == 6:
                     df.loc[merged_rows, 'Position'] = df.loc[merged_rows, 'Position'] - 5
         return df
@@ -224,7 +226,7 @@ def device_role_check():
             exit()
         
 def rack_check():
-    rack_names = df['Rack'].drop_duplicates().tolist()
+    rack_names = df['Rack'].dropna().drop_duplicates().tolist()
     missing_racks = []
     for rack_name in rack_names:
         record = nb.dcim.racks.get(name=rack_name)
@@ -240,9 +242,6 @@ def rack_check():
             for rack in missing_racks:
                 try:
                     site = nb.dcim.sites.get(name=config.sitename)
-                    if not site:
-                        print(f"Site '{config.sitename}' does not exist in NetBox. Please create it first.")
-                        break
                     new_rack = nb.dcim.racks.create(
                         site=site.id,
                         name=rack,
@@ -305,17 +304,19 @@ def get_rack_id(rack_name):
     
 def import_device_to_NetBox(df):
     df = df.dropna(subset=['Name'], how='all')
-    df = handle_duplicate_names(df,name_col='Name', serial_col='Serial Number')
+    df = handle_duplicate_names(df, name_col='Name', serial_col='Serial Number')
     device_names = df['Name'].dropna().tolist()
     number_of_device_in_file = 0
     number_of_device_has_been_added = 0
     df['role'] = df['Role'].apply(get_role)
     df['description'] = df['Description'].fillna('No data yet')
+    
     for device_name in device_names:
         matching_rows = df[df['Name'] == device_name]
         if matching_rows.empty:
             print(f"Device Name {device_name} not found in Excel. Skipping...")
             continue
+        
         number_of_device_in_file += 1
         row = matching_rows.iloc[0]
         device_role = row.get('role')
@@ -334,6 +335,11 @@ def import_device_to_NetBox(df):
         rack_id = get_rack_id(rack)
         site_id = get_site_id(site_name=sitename)
         
+        existing_device = nb.dcim.devices.get(name=name, site_id=site_id)
+        if existing_device:
+            print(f"Device '{name}' already exists in NetBox. Skipping...")
+            continue
+
         try:
             new_device = nb.dcim.devices.create(
                 {
@@ -345,7 +351,7 @@ def import_device_to_NetBox(df):
                     "rack": rack_id,
                     "face": "front",
                     "position": position,
-                    "status": config.status,  
+                    "status": config.status,
                     "description": description,
                     "custom_fields": {
                         "device_owner": device_owner,
@@ -354,12 +360,14 @@ def import_device_to_NetBox(df):
                     }
                 }
             )
-            number_of_device_has_been_added+=1
+            number_of_device_has_been_added += 1
             print(f"Successfully created device: {name}")
         except Exception as e:
             print(f"Error creating device '{name}': {e}")
+    
     if number_of_device_has_been_added > 0:
-        print(f"{number_of_device_has_been_added}/{number_of_device_in_file} device has been added to NetBox!" )
+        print(f"{number_of_device_has_been_added}/{number_of_device_in_file} devices have been added to NetBox!")
+
 
 def main():
     try:

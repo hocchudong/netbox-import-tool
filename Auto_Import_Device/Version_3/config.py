@@ -1,5 +1,5 @@
 # Nhập dữ liệu file
-filepath = 'test_input.xlsx'
+filepath = 'Rack_M1-10.xlsx'
 sheetname = 'Input'
 
 # Nhập dữ liệu để kết nối tới NetBox
