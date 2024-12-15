@@ -17,6 +17,15 @@ NetBox_Token = config.NetBox_Token
 sitename = config.sitename
 sheetname = config.sheetname
 
+# Khai báo biến global
+global DEVICE_HEIGHTS # array chiều cao của thiết bị 
+global LIST_ADD_MANUFACTURES_ERROR
+global LIST_ADD_DEVICE_TYPE_ERROR
+global LIST_ADD_DEVICE_ERROR
+global LIST_ADD_DEVICE_ROLE_ERROR
+
+DEVICE_HEIGHTS =  LIST_ADD_DEVICE_ROLE_ERROR = LIST_ADD_MANUFACTURES_ERROR = LIST_ADD_DEVICE_TYPE_ERROR = LIST_ADD_DEVICE_ERROR = []
+
 # Class lưu thông tin độ cao của device type
 class DeviceHight:
     def __init__(self, name, height):
@@ -36,21 +45,6 @@ def file_check(input_file):
         columns = [cell.value for cell in sheet[1]]  
         # new code
         df = pd.read_excel(input_file, sheet_name=sheetname)
-
-        # old code
-
-        #data = [[cell.value for cell in row] for row in sheet.iter_rows(min_row=2)]
-        # global df
-        # df = pd.DataFrame(data, columns=columns)
-        # df = df.dropna(subset=['Name'], how='all')
-        # required_columns = ['Role','Type','Serial Number']
-        # for index, row in df.iterrows():
-        #     if pd.notna(row['Name']):
-        #         missing_columns = [col for col in required_columns if pd.isnull(row[col])]
-        #         if missing_columns:
-        #             print(f"Error: Row {index + 2} is missing values in columns: {missing_columns}")
-        #             exit()
-        # print("File Check complete!")
     else:
         print(f"File '{input_file}' doesn't exist!")
         exit()
@@ -95,27 +89,7 @@ def handle_duplicate_names(df, name_col, serial_col):
             serial_value = df.at[row, serial_col]
             df.at[row, name_col] = f"{name}_{serial_value}"
     return df
-
-def excute_merge_data(df, sheet):
-    try:
-        df['u_height'] = 1
-        for merged_cells in sheet.merged_cells.ranges:
-            min_row, min_col, max_row, max_col = merged_cells.min_row, merged_cells.min_col, merged_cells.max_row, merged_cells.max_col
-            if min_col == 3 and max_col == 3:
-                merge_height = max_row - min_row + 1
-                merged_rows = list(range(min_row - 2, max_row - 1))  
-                df.loc[merged_rows, 'u_height'] = merge_height
-                if merge_height == 2:
-                    df.loc[merged_rows, 'Position'] = df.loc[merged_rows, 'Position'] - 1
-                elif merge_height == 3:
-                    df.loc[merged_rows, 'Position'] = df.loc[merged_rows, 'Position'] - 2
-                elif merge_height == 6:
-                    df.loc[merged_rows, 'Position'] = df.loc[merged_rows, 'Position'] - 5
-        return df
-    except Exception as e:
-        print(f"Error while excuting merge_data: {e}")
-        exit()   
-    
+ 
 def site_check(site_name):
     site_record = nb.dcim.sites.get(name=site_name)
     if site_record:
@@ -180,10 +154,11 @@ def device_role_check():
                         name=role,
                         slug=role.lower().replace(" ", "-"),
                         color="9e9e9e",
-                        description='Create by Auto_Import_Tool',  
+                        description='Create device role by Auto_Import_Tool',  
                     )
                     print(f"Successfully created Device Role: {new_role['name']}")
                 except Exception as e:
+                    LIST_ADD_DEVICE_ROLE_ERROR.append(role)
                     print(f"Failed to create Device Role {role}: {e}")
         else:
             print("No roles were added. Please update NetBox manually if needed.")
@@ -251,11 +226,12 @@ def manufacturer_check():
                     new_manufacturer = nb.dcim.manufacturers.create(
                         name=manufacturer,
                         slug=manufacturer.lower().replace(" ", "-"),
-                        description='Create by Auto_Import_Tool',  
+                        description='Create manufacture by Auto_Import_Tool',  
                     )
-                    print(f"Successfully created Device Role: {new_manufacturer['name']}")
+                    print(f"Successfully created Manufacture: {new_manufacturer['name']}")
                 except Exception as e:
-                    print(f"Failed to create Device Role {manufacturer}: {e}")
+                    LIST_ADD_MANUFACTURES_ERROR.append(manufacturer)
+                    print(f"Failed to create Manufacture {manufacturer}: {e}")
         else:
             print("No manufacturers were added. Please update NetBox manually if needed.")
             exit()
@@ -280,33 +256,19 @@ def custom_feild_check():
         if choice == 'yes':
             for custom_feild in missing_custom_feild:
                 try:
-                    if custom_feild == "year_of_investment":
-                        type_custom_feild = "datetime"
-                        new_custom_feild = nb.extras.custom_fields.create(
-                            name = custom_feild,
-                            type = type_custom_feild,
-                            object_types = ["dcim.device"],
-                            search_weight = 1000,
-                            weight = 100,
-                            filter_logic = "loose",
-                            ui_visible = "always",
-                            ui_editable = "yes",
-                            description = 'Create by Auto_Import_Tool',
-                        )
-                    else:
-                        type_custom_feild = "text"
-                        new_custom_feild = nb.extras.custom_fields.create({
-                            "name" : custom_feild,
-                            "type" : type_custom_feild,
-                            "object_types" : ["dcim.device"],
-                            "search_weight" : 1000,
-                            "weight" : 100,
-                            "filter_logic" : "loose",
-                            "ui_visible" : "always",
-                            "ui_editable" : "yes",
-                            "description" : 'Create by Auto_Import_Tool',
-                        })
-
+                    
+                    type_custom_feild = "text"
+                    new_custom_feild = nb.extras.custom_fields.create({
+                        "name" : custom_feild,
+                        "type" : type_custom_feild,
+                        "object_types" : ["dcim.device"],
+                        "search_weight" : 1000,
+                        "weight" : 100,
+                        "filter_logic" : "loose",
+                        "ui_visible" : "always",
+                        "ui_editable" : "yes",
+                        "description" : 'Create by Auto_Import_Tool',
+                    })
                     print(f"Successfully created custom feild : {new_custom_feild['name']}")
                 except Exception as e:
                     print(f"Failed to create custom feild {custom_feild}: {e}")
@@ -316,8 +278,6 @@ def custom_feild_check():
 
 #Hàm tạo ra mảng chứa trường name và u_height của device_type
 def device_type_height():
-    global device_heights
-    device_heights = []
     # Tìm u_height của device type 
     print("Merged cell ranges in column H spanning rows:")
     for merged_range in sheet.merged_cells.ranges:
@@ -330,11 +290,11 @@ def device_type_height():
             # Tính các row đã merg của ô
             rows_spanned = merged_range.max_row - merged_range.min_row + 1
 
-            exists = any(device.name == device_type_name for device in device_heights)
+            exists = any(device.name == device_type_name for device in DEVICE_HEIGHTS)
             # kiểm tra giá trị đã có trong list chưa
             if not exists:
                 new_device_height =  DeviceHight(device_type_name,rows_spanned)
-                device_heights.append(new_device_height)     
+                DEVICE_HEIGHTS.append(new_device_height)     
 
 # Hàm auto add device type vào netbox
 def device_types_check():
@@ -377,7 +337,7 @@ def device_types_check():
                     device_height = 1 # mặc định height bằng 1 
                     
                     #Tìm kiếm trong danh sách thiết bị có height > 1
-                    for device in device_heights:
+                    for device in DEVICE_HEIGHTS:
                         if device.name == device_type:
                             device_height = device.height
                             break
@@ -396,7 +356,7 @@ def device_types_check():
                     
                 except Exception as e:
                     print(f"Error while adding {device_type}: {e}")
-                    exit()
+                    LIST_ADD_DEVICE_TYPE_ERROR.append(device_type)
     else:
         print("Device Types check complete!")
     
@@ -473,7 +433,7 @@ def import_device_to_NetBox():
         # Xử lý trường position
         device_position = row['Position']
         #Tìm kiếm trong danh sách thiết bị có height > 1
-        for device in device_heights:
+        for device in DEVICE_HEIGHTS:
             if device.name == row['Type']:
                 device_position = device_position - device.height + 1
                 break
@@ -493,7 +453,7 @@ def import_device_to_NetBox():
 
             if not pd.isna(row['Contract number']):
                 contract_number = row['Contract number']
-            
+
             if not pd.isna(row['Year of Investment']):
                 device_year_of_investment = row['Year of Investment']
                 # convert string to data time format YYYY-MM-DD HH:MM:SS
@@ -528,6 +488,7 @@ def import_device_to_NetBox():
             number_of_device_has_been_added+=1
             print(f"Successfully created device: {device_name}")
         except Exception as e:
+            LIST_ADD_DEVICE_ERROR.append(device_name)
             print(f"Error creating device '{device_name}': {e}")
             
     if number_of_device_has_been_added > 0:
@@ -565,11 +526,15 @@ def main():
         print("Step 10: Importing Devices into NetBox...")
         import_device_to_NetBox()
 
-        # print("Step 4: Excuting Merge data...")
-        # excute_merge_data(df=df,sheet=sheet)
+        print(f"List Manufacture error while create new record:\n {LIST_ADD_MANUFACTURES_ERROR}")
+
+        print(f"List Device Type error while create new record:\n {LIST_ADD_DEVICE_TYPE_ERROR}")
+
+        print(f"List Device Role error while create new record:\n {LIST_ADD_DEVICE_ROLE_ERROR}")
+
+        print(f"List Device error while create new record:\n {LIST_ADD_DEVICE_ERROR}")
 
         print("Process completed successfully!")
-
     except Exception as e:
         print(f"Error during execution: {e}")
 
