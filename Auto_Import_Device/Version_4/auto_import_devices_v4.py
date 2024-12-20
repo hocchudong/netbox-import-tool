@@ -456,10 +456,8 @@ def import_device_to_NetBox():
 
             if not pd.isna(row['Year of Investment']):
                 device_year_of_investment = row['Year of Investment']
-                # convert string to data time format YYYY-MM-DD HH:MM:SS
-                date_object = datetime.strptime(device_year_of_investment, "%m/%d/%Y")
-                formatted_date = date_object.strftime("%Y-%m-%d %H:%M:%S")
-                device_year_of_investment = formatted_date
+                if type(device_year_of_investment) is datetime:
+                    device_year_of_investment = device_year_of_investment.strftime("%d-%m-%Y")
 
             # in ra màn hình khi serial number null
             if pd.isna(row['Serial Number']):
