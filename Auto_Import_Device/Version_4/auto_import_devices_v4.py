@@ -7,24 +7,24 @@ import urllib3
 import warnings
 from urllib3.exceptions import InsecureRequestWarning
 from openpyxl import load_workbook
-import config
 from datetime import datetime
 
 
-filepath = config.filepath
-NetBox_URL = config.NetBox_URL
-NetBox_Token = config.NetBox_Token
-sitename = config.sitename
-sheetname = config.sheetname
+WIDTH=19
+U_HEIGHT=42
+STATUS = 'active'
+FILE_PATH = '/opt/netbox/netbox/plugin/netbox-import-tool/Auto_Import_Device/Version_4/Rack_M1-10.xlsx'
+NetBox_URL = 'http://172.16.66.177:8000'
+NetBox_Token = '633a7508b878bcbf33091699289a8a3026a3fbf6'
 
+SITE_NAME = 'VNPT NTL' # Site của  netbox
+SHEET_NAME = 'Input' # Tên của sheet muốn import
 # Khai báo biến global
-global DEVICE_HEIGHTS # array chiều cao của thiết bị 
-global LIST_ADD_MANUFACTURES_ERROR
-global LIST_ADD_DEVICE_TYPE_ERROR
-global LIST_ADD_DEVICE_ERROR
-global LIST_ADD_DEVICE_ROLE_ERROR
-
-DEVICE_HEIGHTS =  LIST_ADD_DEVICE_ROLE_ERROR = LIST_ADD_MANUFACTURES_ERROR = LIST_ADD_DEVICE_TYPE_ERROR = LIST_ADD_DEVICE_ERROR = []
+DEVICE_HEIGHTS =  []
+LIST_ADD_DEVICE_ROLE_ERROR = []
+LIST_ADD_MANUFACTURES_ERROR = []
+LIST_ADD_DEVICE_TYPE_ERROR = []
+LIST_ADD_DEVICE_ERROR = []
 
 # Class lưu thông tin độ cao của device type
 class DeviceHight:
@@ -44,7 +44,7 @@ def file_check(input_file):
         global df
         columns = [cell.value for cell in sheet[1]]  
         # new code
-        df = pd.read_excel(input_file, sheet_name=sheetname)
+        df = pd.read_excel(input_file, sheet_name=SHEET_NAME)
     else:
         print(f"File '{input_file}' doesn't exist!")
         exit()
@@ -102,7 +102,7 @@ def site_check(site_name):
             new_site = nb.dcim.sites.create(
                 name=site_name,
                 slug=site_name.lower().replace(" ", "-"),
-                status=config.status,
+                status=STATUS,
                 description='Create by Auto_Import_Tool',
             )
             print(f"Successfully created Site: {site_name}")
@@ -181,16 +181,16 @@ def rack_check():
         if choice == 'yes':
             for rack in missing_racks:
                 try:
-                    site = nb.dcim.sites.get(name=config.sitename)
+                    site = nb.dcim.sites.get(name=SITE_NAME)
                     if not site:
-                        print(f"Site '{config.sitename}' does not exist in NetBox. Please create it first.")
+                        print(f"Site '{SITE_NAME}' does not exist in NetBox. Please create it first.")
                         break
                     new_rack = nb.dcim.racks.create(
                         site=site.id,
                         name=rack,
                         status='active',
-                        width=config.width,
-                        u_height=config.u_height,
+                        width=WIDTH,
+                        u_height=U_HEIGHT,
                         description='Create by Auto_Import_Tool',
                     )
                     print(f"Successfully created Rack: {new_rack['name']}")
@@ -426,7 +426,7 @@ def import_device_to_NetBox():
 
         # Thêm mới device đến netbox
         rack_id = get_rack_id(row['Rack'])
-        site_id = get_site_id(site_name=sitename)
+        site_id = get_site_id(site_name=SITE_NAME)
         device_types_id = get_device_types_ids(row['Type'])
         device_roles_id = get_device_roles_ids(row['Role'])
 
@@ -473,7 +473,7 @@ def import_device_to_NetBox():
                     "rack": rack_id,
                     "face": "front",
                     "position": device_position,
-                    "status": config.status,  
+                    "status": STATUS,  
                     "description": device_description,
                     "custom_fields": {
                         "device_owner": device_owner,
@@ -495,13 +495,13 @@ def import_device_to_NetBox():
 def main():
     try:
         print("Step 1: Checking input file...")
-        file_check(filepath)
+        file_check(FILE_PATH)
         
         print("Step 2: Checking NetBox connection...")
         netbox_connection_check(NetBox_URL, NetBox_Token)
 
         print("Step 3: check site name")
-        site_check(site_name=sitename)
+        site_check(site_name=SITE_NAME)
 
         print("Step 4: check rack")
         rack_check()
