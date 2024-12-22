@@ -13,13 +13,17 @@ from datetime import datetime
 WIDTH=19
 U_HEIGHT=42
 STATUS = 'active'
-FILE_PATH = '/opt/netbox/netbox/plugin/netbox-import-tool/Auto_Import_Device/Version_4/Rack_M1-10.xlsx'
+TAG_NAME_AUTO_IMPORT = "AutoImportExcel"
+
+# FILE_PATH = '/opt/netbox/netbox/plugin/netbox-import-tool/Auto_Import_Device/Version_4/Rack_M1-10.xlsx' #test_serial_null
+FILE_PATH = '/opt/netbox/netbox/plugin/netbox-import-tool/Auto_Import_Device/Version_4/test_serial_null.xlsx' #test_serial_null
 NetBox_URL = 'http://172.16.66.177:8000'
 NetBox_Token = '633a7508b878bcbf33091699289a8a3026a3fbf6'
 
 SITE_NAME = 'VNPT NTL' # Site của  netbox
 SHEET_NAME = 'Input' # Tên của sheet muốn import
 # Khai báo biến global
+TAG_ID_AUTO_IMPORT = []
 DEVICE_HEIGHTS =  []
 LIST_ADD_DEVICE_ROLE_ERROR = []
 LIST_ADD_MANUFACTURES_ERROR = []
@@ -78,18 +82,6 @@ def netbox_connection_check(netboxurl, netboxtoken):
         print(f"Error: An unknown error occurred. More: {e}")
     return None
 
-def handle_duplicate_names(df, name_col, serial_col):
-    name_counts = df[name_col].value_counts()
-    duplicates = name_counts[name_counts > 1].index  # Lấy các giá trị Name bị trùng
-
-    for name in duplicates:
-        duplicate_rows = df[df[name_col] == name].index
-        for i, row in enumerate(duplicate_rows, start=1):
-            #rack_value = df.at[row, rack_col]
-            serial_value = df.at[row, serial_col]
-            df.at[row, name_col] = f"{name}_{serial_value}"
-    return df
- 
 def site_check(site_name):
     site_record = nb.dcim.sites.get(name=site_name)
     if site_record:
@@ -102,12 +94,43 @@ def site_check(site_name):
             new_site = nb.dcim.sites.create(
                 name=site_name,
                 slug=site_name.lower().replace(" ", "-"),
+                tags=TAG_ID_AUTO_IMPORT,
                 status=STATUS,
                 description='Create by Auto_Import_Tool',
             )
             print(f"Successfully created Site: {site_name}")
         else:
             print("Please check the Site again before using this Tool!")
+
+
+# Hàm check xem có tag AutoImportExcel chưa
+def tag_check():
+    # get tag 
+    tag_exist = nb.extras.tags.filter(slug="auto-import-excel")
+
+    # if not exist => add tag AutoImportExcel
+    if not tag_exist:
+        try:
+            new_tag = nb.extras.tags.create(
+                name=TAG_NAME_AUTO_IMPORT,
+                slug="auto-import-excel",
+                color="9e9e9e",
+                description='Create tag AutoImportExcel',
+            )
+            print(f"Create success tag {TAG_NAME_AUTO_IMPORT}")
+            # get ID tag 
+            get_tag_id()
+        except:
+            print(f"Error while create tag {TAG_NAME_AUTO_IMPORT}")
+    else:
+        # get ID tag
+        get_tag_id()
+
+def get_tag_id():
+    tag_auto_import_excel = nb.extras.tags.filter(name=TAG_NAME_AUTO_IMPORT)
+    first_tag = next(tag_auto_import_excel, None)
+    if first_tag:
+        TAG_ID_AUTO_IMPORT.append(first_tag.id)
 
 def get_role(role_value):
         if isinstance(role_value, str):  
@@ -153,6 +176,7 @@ def device_role_check():
                     new_role = nb.dcim.device_roles.create(
                         name=role,
                         slug=role.lower().replace(" ", "-"),
+                        tags=TAG_ID_AUTO_IMPORT,
                         color="9e9e9e",
                         description='Create device role by Auto_Import_Tool',  
                     )
@@ -189,6 +213,7 @@ def rack_check():
                         site=site.id,
                         name=rack,
                         status='active',
+                        tags=TAG_ID_AUTO_IMPORT,
                         width=WIDTH,
                         u_height=U_HEIGHT,
                         description='Create by Auto_Import_Tool',
@@ -226,6 +251,7 @@ def manufacturer_check():
                     new_manufacturer = nb.dcim.manufacturers.create(
                         name=manufacturer,
                         slug=manufacturer.lower().replace(" ", "-"),
+                        tags=TAG_ID_AUTO_IMPORT,
                         description='Create manufacture by Auto_Import_Tool',  
                     )
                     print(f"Successfully created Manufacture: {new_manufacturer['name']}")
@@ -264,6 +290,7 @@ def custom_feild_check():
                         "object_types" : ["dcim.device"],
                         "search_weight" : 1000,
                         "weight" : 100,
+                        "tags": TAG_ID_AUTO_IMPORT,
                         "filter_logic" : "loose",
                         "ui_visible" : "always",
                         "ui_editable" : "yes",
@@ -348,6 +375,7 @@ def device_types_check():
                         'model': device_type,
                         'slug': device_type_slug,
                         'manufacturer': manufacturer.id,
+                        "tags": TAG_ID_AUTO_IMPORT,
                         'u_height': device_height,
                         'is_full_depth': 'yes',
                     })
@@ -412,9 +440,20 @@ def import_device_to_NetBox():
     # list device need add 
     device_names = df[["Rack", "Position", "Manufacturer", "Name", "Role", "Device Owner",  "Contract number","Type", "Serial Number","Year of Investment", "Description"]]
     device_names= device_names[device_names['Name'].notna()] # lọc tất cả hàng có trường Name là nan
+    number_of_device_in_file = 0 # Số lượng device đã được add 
+    number_of_device_has_been_added = 0 # Tổng số lượn device trong danh sách
 
-    number_of_device_in_file = 0
-    number_of_device_has_been_added = 0
+    # check device have serial number null
+    device_null_serial_numbers = device_names[device_names['Serial Number'].isnull()]
+    if len(device_null_serial_numbers) > 0:
+        print(f"List device have serial_number null:\n {device_null_serial_numbers}")
+        print("Do you want add serial_number null?")
+
+        choice = input("Enter your choice? (yes/no): ")
+        if choice == "yes":
+            print("\nPlease Add Device Types manually!")
+            exit()
+
     for index, row in device_names.iterrows():
         number_of_device_in_file+=1
         # kiểm tra xem device name đã được add trên netbox chưa
@@ -442,8 +481,9 @@ def import_device_to_NetBox():
             #Kiểm tra nan cho các param 
             device_description = ""
             device_owner = ""
-            device_contract_number = ""
+            contract_number = ""
             device_year_of_investment = ""
+            device_serial_number = "null"
 
             if not pd.isna(row['Description']):
                 device_description = row['Description']
@@ -459,20 +499,21 @@ def import_device_to_NetBox():
                 if type(device_year_of_investment) is datetime:
                     device_year_of_investment = device_year_of_investment.strftime("%d-%m-%Y")
 
-            # in ra màn hình khi serial number null
-            if pd.isna(row['Serial Number']):
-                print(f"While add device: {device_name} has serial number null")
-            
+            # Nếu như không phải null thì sẽ lấy giá trị đó (Mặc định là null)
+            if not pd.isna(row['Serial Number']):
+                device_serial_number = row['Serial Number']
+
             new_device = nb.dcim.devices.create(
                 {
                     "name": device_name,
                     "device_type": device_types_id,
                     "role": device_roles_id,
                     "site": site_id,
-                    "serial": row['Serial Number'],
+                    "serial": device_serial_number,
                     "rack": rack_id,
                     "face": "front",
                     "position": device_position,
+                    "tags":TAG_ID_AUTO_IMPORT,
                     "status": STATUS,  
                     "description": device_description,
                     "custom_fields": {
@@ -500,28 +541,31 @@ def main():
         print("Step 2: Checking NetBox connection...")
         netbox_connection_check(NetBox_URL, NetBox_Token)
 
-        print("Step 3: check site name")
+        print(f"Step 3: Check tag {TAG_NAME_AUTO_IMPORT}")
+        tag_check()
+
+        print("Step 4: check site name")
         site_check(site_name=SITE_NAME)
 
-        print("Step 4: check rack")
+        print("Step 5: check rack")
         rack_check()
 
-        print("Step 5: check device role")
+        print("Step 6: check device role")
         device_role_check()
         
-        print("Step 6: check manufacturer")
+        print("Step 7: check manufacturer")
         manufacturer_check()
 
-        print("Step 7: check custom feild")
+        print("Step 8: check custom feild")
         custom_feild_check()
         
-        print("Step 8: Check height device type")
+        print("Step 9: Check height device type")
         device_type_height()
 
-        print("Step 9: check device type")
+        print("Step 10: check device type")
         device_types_check()
 
-        print("Step 10: Importing Devices into NetBox...")
+        print("Step 11: Importing Devices into NetBox...")
         import_device_to_NetBox()
 
         print(f"List Manufacture error while create new record:\n {LIST_ADD_MANUFACTURES_ERROR}")
