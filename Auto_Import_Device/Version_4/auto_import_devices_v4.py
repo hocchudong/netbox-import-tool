@@ -15,8 +15,9 @@ U_HEIGHT=42
 STATUS = 'active'
 TAG_NAME_AUTO_IMPORT = "AutoImportExcel"
 
-# FILE_PATH = '/opt/netbox/netbox/plugin/netbox-import-tool/Auto_Import_Device/Version_4/Rack_M1-10.xlsx' #test_serial_null
-FILE_PATH = '/opt/netbox/netbox/plugin/netbox-import-tool/Auto_Import_Device/Version_4/test_serial_null.xlsx' #test_serial_null
+# FILE_PATH = '/opt/netbox/netbox/plugin/netbox-import-tool/Auto_Import_Device/Version_4/Rack_M1-10.xlsx' 
+# FILE_PATH = '/opt/netbox/netbox/plugin/netbox-import-tool/Auto_Import_Device/Version_4/test_rack_nan.xlsx' 
+FILE_PATH = '/opt/netbox/netbox/plugin/netbox-import-tool/Auto_Import_Device/Version_4/test_date_time.xlsx'
 NetBox_URL = 'http://172.16.66.177:8000'
 NetBox_Token = '633a7508b878bcbf33091699289a8a3026a3fbf6'
 
@@ -189,7 +190,8 @@ def device_role_check():
             exit()
         
 def rack_check():
-    rack_names = df['Rack'].drop_duplicates().tolist()
+    rack_names = df['Rack'].drop_duplicates().dropna().tolist()
+    rack_names = list(set(rack_names))# lọc trùng
     missing_racks = []
     for rack_name in rack_names:
         record = nb.dcim.racks.get(name=rack_name)
@@ -438,7 +440,7 @@ def get_rack_id(rack_name):
 # Hàm auto add device vào netbox
 def import_device_to_NetBox():
     # list device need add 
-    device_names = df[["Rack", "Position", "Manufacturer", "Name", "Role", "Device Owner",  "Contract number","Type", "Serial Number","Year of Investment", "Description"]]
+    device_names = df[["Rack", "U", "Manufacturer", "Name", "Role", "Owner Device",  "Contract number","Type", "Serial Number","Year of Investment", "Comments"]]
     device_names= device_names[device_names['Name'].notna()] # lọc tất cả hàng có trường Name là nan
     number_of_device_in_file = 0 # Số lượng device đã được add 
     number_of_device_has_been_added = 0 # Tổng số lượn device trong danh sách
@@ -470,7 +472,7 @@ def import_device_to_NetBox():
         device_roles_id = get_device_roles_ids(row['Role'])
 
         # Xử lý trường position
-        device_position = row['Position']
+        device_position = row['U']
         #Tìm kiếm trong danh sách thiết bị có height > 1
         for device in DEVICE_HEIGHTS:
             if device.name == row['Type']:
@@ -485,11 +487,11 @@ def import_device_to_NetBox():
             device_year_of_investment = ""
             device_serial_number = "null"
 
-            if not pd.isna(row['Description']):
-                device_description = row['Description']
+            if not pd.isna(row['Comments']):
+                device_description = row['Comments']
 
-            if not pd.isna(row['Device Owner']):
-                device_owner = row['Device Owner']
+            if not pd.isna(row['Owner Device']):
+                device_owner = row['Owner Device']
 
             if not pd.isna(row['Contract number']):
                 contract_number = row['Contract number']
@@ -498,7 +500,8 @@ def import_device_to_NetBox():
                 device_year_of_investment = row['Year of Investment']
                 if type(device_year_of_investment) is datetime:
                     device_year_of_investment = device_year_of_investment.strftime("%d-%m-%Y")
-
+                elif type(device_year_of_investment) is int:
+                    device_year_of_investment = str(device_year_of_investment)
             # Nếu như không phải null thì sẽ lấy giá trị đó (Mặc định là null)
             if not pd.isna(row['Serial Number']):
                 device_serial_number = row['Serial Number']
