@@ -149,9 +149,9 @@ def get_role(role_value):
 
 def device_role_check():
     # device_role_names = df['Role'].dropna().drop_duplicates().apply(get_role).tolist()
-    device_role_names = df["Role"].tolist() # chuyển pandas thành list 
+    device_role_names = df["Role"].dropna().tolist() # chuyển pandas thành list 
+    device_role_names = [item.strip() for item in device_role_names] # Xoá space cho các item
     device_role_names = list(set(device_role_names)) # lọc trùng
-    device_role_names = list(filter(lambda x: x == x, device_role_names)) # loại bỏ phần tử nan trong chuỗi
 
     all_roles_exist = True # tất cả đã tồn tại chưa
     missing_roles = [] # danh sách các roles chưa có 
@@ -191,6 +191,7 @@ def device_role_check():
         
 def rack_check():
     rack_names = df['Rack'].drop_duplicates().dropna().tolist()
+    rack_names = [item.strip() for item in rack_names] # Xoá space cho các item
     rack_names = list(set(rack_names))# lọc trùng
     missing_racks = []
     for rack_name in rack_names:
@@ -230,6 +231,7 @@ def rack_check():
 
 def manufacturer_check():
     manufacturer_names = df["Manufacturer"].dropna().tolist()
+    manufacturer_names = [item.strip() for item in manufacturer_names] # Xoá space cho các item
     manufacturer_names = list(set(manufacturer_names))# lọc trùng
 
     all_manufacturers_exist = True  
@@ -328,7 +330,9 @@ def device_type_height():
 # Hàm auto add device type vào netbox
 def device_types_check():
     device_types_in_file = df['Type'].dropna().tolist() 
+    device_types_in_file = [item.strip() for item in device_types_in_file] # Xoá space cho các item
     device_types_in_file = list(set(device_types_in_file)) # lọc trùng
+    
     device_type_not_in_netbox = []
 
     # Tìm phần tử chưa có trong netbox
@@ -440,7 +444,7 @@ def get_rack_id(rack_name):
 # Hàm auto add device vào netbox
 def import_device_to_NetBox():
     # list device need add 
-    device_names = df[["Rack", "U", "Manufacturer", "Name", "Role", "Owner Device",  "Contract number","Type", "Serial Number","Year of Investment", "Description"]]
+    device_names = df[["Rack", "U", "Manufacturer", "Name", "Role", "Owner Device",  "Contract number","Type", "Serial Number","Year of Investment", "Comments"]]
     device_names= device_names[device_names['Name'].notna()] # lọc tất cả hàng có trường Name là nan
     number_of_device_in_file = 0 # Số lượng device đã được add 
     number_of_device_has_been_added = 0 # Tổng số lượn device trong danh sách
@@ -482,8 +486,8 @@ def import_device_to_NetBox():
             device_year_of_investment = ""
             device_serial_number = ""
 
-            if not pd.isna(row['Description']):
-                device_description = row['Description']
+            if not pd.isna(row['Comments']):
+                device_description = row['Comments']
 
             if not pd.isna(row['Owner Device']):
                 device_owner = row['Owner Device']
@@ -535,6 +539,15 @@ def import_device_to_NetBox():
             
             number_of_device_has_been_added+=1
             print(f"Successfully created device: {device_name}")
+        except pynetbox.RequestError as e:
+            # Handle errors
+            LIST_ADD_DEVICE_ERROR.append(device_name)
+            if "non_field_errors" in e.error:
+                print(f"Vị trí U-{device_position} ở tủ Rack {row['Rack']} đã có thiết bị")
+            elif "position" in e.error: 
+                print(f"Khoảng trống của vị trí  U-{device_position} ở tủ Rack {row['Rack']} không đủ cho thiết bị")
+            else:
+                print(f"Error creating device '{device_name}': {e}")
         except Exception as e:
             LIST_ADD_DEVICE_ERROR.append(device_name)
             print(f"Error creating device '{device_name}': {e}")
