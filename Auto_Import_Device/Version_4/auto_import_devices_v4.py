@@ -440,7 +440,7 @@ def get_rack_id(rack_name):
 # Hàm auto add device vào netbox
 def import_device_to_NetBox():
     # list device need add 
-    device_names = df[["Rack", "U", "Manufacturer", "Name", "Role", "Owner Device",  "Contract number","Type", "Serial Number","Year of Investment", "Comments"]]
+    device_names = df[["Rack", "U", "Manufacturer", "Name", "Role", "Owner Device",  "Contract number","Type", "Serial Number","Year of Investment", "Description"]]
     device_names= device_names[device_names['Name'].notna()] # lọc tất cả hàng có trường Name là nan
     number_of_device_in_file = 0 # Số lượng device đã được add 
     number_of_device_has_been_added = 0 # Tổng số lượn device trong danh sách
@@ -482,8 +482,8 @@ def import_device_to_NetBox():
             device_year_of_investment = ""
             device_serial_number = ""
 
-            if not pd.isna(row['Comments']):
-                device_description = row['Comments']
+            if not pd.isna(row['Description']):
+                device_description = row['Description']
 
             if not pd.isna(row['Owner Device']):
                 device_owner = row['Owner Device']
