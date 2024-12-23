@@ -8,7 +8,7 @@ import warnings
 from urllib3.exceptions import InsecureRequestWarning
 from openpyxl import load_workbook
 from datetime import datetime
-
+import random
 
 WIDTH=19
 U_HEIGHT=42
@@ -458,34 +458,29 @@ def import_device_to_NetBox():
 
     for index, row in device_names.iterrows():
         number_of_device_in_file+=1
-        # kiểm tra xem device name đã được add trên netbox chưa
-        device_name = row['Name']
-        device_name = device_name.strip()
-        exist_device = nb.dcim.devices.get(name=device_name)
-        if exist_device:
-            device_name = device_name + f"_{row['Serial Number']}"
-
-        # Thêm mới device đến netbox
-        rack_id = get_rack_id(row['Rack'])
-        site_id = get_site_id(site_name=SITE_NAME)
-        device_types_id = get_device_types_ids(row['Type'])
-        device_roles_id = get_device_roles_ids(row['Role'])
-
-        # Xử lý trường position
-        device_position = row['U']
-        #Tìm kiếm trong danh sách thiết bị có height > 1
-        for device in DEVICE_HEIGHTS:
-            if device.name == row['Type']:
-                device_position = device_position - device.height + 1
-                break
 
         try:
+
+            # Thêm mới device đến netbox
+            rack_id = get_rack_id(row['Rack'])
+            site_id = get_site_id(site_name=SITE_NAME)
+            device_types_id = get_device_types_ids(row['Type'])
+            device_roles_id = get_device_roles_ids(row['Role'])
+
+            # Xử lý trường position
+            device_position = row['U']
+            #Tìm kiếm trong danh sách thiết bị có height > 1
+            for device in DEVICE_HEIGHTS:
+                if device.name == row['Type']:
+                    device_position = device_position - device.height + 1
+                    break
+
             #Kiểm tra nan cho các param 
             device_description = ""
             device_owner = ""
             contract_number = ""
             device_year_of_investment = ""
-            device_serial_number = "null"
+            device_serial_number = ""
 
             if not pd.isna(row['Comments']):
                 device_description = row['Comments']
@@ -502,9 +497,20 @@ def import_device_to_NetBox():
                     device_year_of_investment = device_year_of_investment.strftime("%d-%m-%Y")
                 elif type(device_year_of_investment) is int:
                     device_year_of_investment = str(device_year_of_investment)
-            # Nếu như không phải null thì sẽ lấy giá trị đó (Mặc định là null)
+
+            # Nếu như không phải null thì sẽ lấy giá trị đó (Mặc định là random)
             if not pd.isna(row['Serial Number']):
                 device_serial_number = row['Serial Number']
+            else:
+                random_number = random.randint(100000, 999999)
+                device_serial_number = random_number
+
+            # kiểm tra xem device name đã được add trên netbox chưa
+            device_name = row['Name']
+            device_name = device_name.strip()
+            exist_device = nb.dcim.devices.get(name=device_name)
+            if exist_device:
+                device_name = device_name + f"-{device_serial_number}"
 
             new_device = nb.dcim.devices.create(
                 {
