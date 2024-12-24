@@ -14,10 +14,10 @@ WIDTH=19
 U_HEIGHT=42
 STATUS = 'active'
 TAG_NAME_AUTO_IMPORT = "AutoImportExcel"
-
+50
 # FILE_PATH = '/opt/netbox/netbox/plugin/netbox-import-tool/Auto_Import_Device/Version_4/Rack_M1-10.xlsx' 
 # FILE_PATH = '/opt/netbox/netbox/plugin/netbox-import-tool/Auto_Import_Device/Version_4/test_rack_nan.xlsx' 
-FILE_PATH = '/opt/netbox/netbox/plugin/netbox-import-tool/Auto_Import_Device/Version_4/test_date_time.xlsx'
+FILE_PATH = '/opt/netbox/netbox/plugin/netbox-import-tool/Auto_Import_Device/Version_4/DC3_check_23122024_test5.xlsx'
 NetBox_URL = 'http://172.16.66.177:8000'
 NetBox_Token = '633a7508b878bcbf33091699289a8a3026a3fbf6'
 
@@ -108,7 +108,6 @@ def site_check(site_name):
 def tag_check():
     # get tag 
     tag_exist = nb.extras.tags.filter(slug="auto-import-excel")
-
     # if not exist => add tag AutoImportExcel
     if not tag_exist:
         try:
@@ -133,22 +132,7 @@ def get_tag_id():
     if first_tag:
         TAG_ID_AUTO_IMPORT.append(first_tag.id)
 
-def get_role(role_value):
-        if isinstance(role_value, str):  
-            if role_value.lower() == 'fw':
-                return 'Firewall'
-            elif role_value.lower() == 'sw':
-                return 'Switch'
-            elif role_value.lower() == 'svr':
-                return 'Server'
-            elif role_value.lower() == 'r':
-                return 'Router'
-            else:
-                return 'Unknown'
-        return None  
-
 def device_role_check():
-    # device_role_names = df['Role'].dropna().drop_duplicates().apply(get_role).tolist()
     device_role_names = df["Role"].dropna().tolist() # chuyển pandas thành list 
     device_role_names = [item.strip() for item in device_role_names] # Xoá space cho các item
     device_role_names = list(set(device_role_names)) # lọc trùng
@@ -226,6 +210,7 @@ def rack_check():
                     print(f"Failed to create Rack {rack}: {e}")
         else:
             print("No racks were added. Please update NetBox manually if needed.")
+            exit()
     else:
         print("Rack Check complete: All racks exist in NetBox!")
 
@@ -357,7 +342,8 @@ def device_types_check():
                 try:
                     # Tìm manufature của device type trong danh sách 
                     all_manufacturer_device_type = df[["Manufacturer","Type"]].dropna()
-                    manufacturer_device_type = all_manufacturer_device_type.query(f"Type == '{device_type}'")
+                    # manufacturer_device_type = all_manufacturer_device_type.query(f"Type == '{device_type}'")
+                    manufacturer_device_type = all_manufacturer_device_type[all_manufacturer_device_type['Type'].str.contains(device_type, case=False)]
                     manufacturer_name = manufacturer_device_type.iloc[0]['Manufacturer']
                     manufacturer_name = manufacturer_name.strip()
                     manufacturer = nb.dcim.manufacturers.get(name = manufacturer_name)
@@ -386,7 +372,7 @@ def device_types_check():
                         'is_full_depth': 'yes',
                     })
 
-                    print(f"Automatically added : {new_device_type}")
+                    print(f"Automatically added success: {new_device_type}")
                     
                 except Exception as e:
                     print(f"Error while adding {device_type}: {e}")
@@ -514,7 +500,8 @@ def import_device_to_NetBox():
             device_name = device_name.strip()
             exist_device = nb.dcim.devices.get(name=device_name)
             if exist_device:
-                device_name = device_name + f"-{device_serial_number}"
+                serial_number_random = random.randint(100000, 999999)
+                device_name = device_name + f"-{serial_number_random}"
 
             new_device = nb.dcim.devices.create(
                 {
