@@ -484,7 +484,7 @@ def import_device_to_NetBox():
             if not pd.isna(row['Year of Investment']):
                 device_year_of_investment = row['Year of Investment']
                 if type(device_year_of_investment) is datetime:
-                    device_year_of_investment = device_year_of_investment.strftime("%d-%m-%Y")
+                    device_year_of_investment = device_year_of_investment.strftime("%d/%m/%Y")
                 elif type(device_year_of_investment) is int:
                     device_year_of_investment = str(device_year_of_investment)
 
