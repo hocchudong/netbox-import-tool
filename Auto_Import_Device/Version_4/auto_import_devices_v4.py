@@ -1,3 +1,4 @@
+import time
 import os
 import pandas as pd
 import pynetbox
@@ -16,8 +17,8 @@ STATUS = 'active'
 TAG_NAME_AUTO_IMPORT = "AutoImportExcel"
 50
 # FILE_PATH = '/opt/netbox/netbox/plugin/netbox-import-tool/Auto_Import_Device/Version_4/Rack_M1-10.xlsx' 
-# FILE_PATH = '/opt/netbox/netbox/plugin/netbox-import-tool/Auto_Import_Device/Version_4/test_rack_nan.xlsx' 
-FILE_PATH = '/opt/netbox/netbox/plugin/netbox-import-tool/Auto_Import_Device/Version_4/DC3_check_23122024_test5.xlsx'
+FILE_PATH = '/opt/netbox/netbox/plugin/netbox-import-tool/Auto_Import_Device/Version_4/test_date_time.xlsx' 
+# FILE_PATH = '/opt/netbox/netbox/plugin/netbox-import-tool/Auto_Import_Device/Version_4/DC3_check_23122024_test5.xlsx'
 NetBox_URL = 'http://172.16.66.177:8000'
 NetBox_Token = '633a7508b878bcbf33091699289a8a3026a3fbf6'
 
@@ -544,6 +545,7 @@ def import_device_to_NetBox():
 
 def main():
     try:
+        start_time = time.time()  # Thời gian bắt đầu
         print("Step 1: Checking input file...")
         file_check(FILE_PATH)
         
@@ -585,6 +587,10 @@ def main():
 
         print(f"List Device error while create new record:\n {LIST_ADD_DEVICE_ERROR}")
 
+        end_time = time.time()  # Thời gian kết thúc
+        duration = end_time - start_time  # Thời gian xử lý
+        duration_total = round(duration / 60, 2)
+        print(f"Time import file: {duration_total} m")
         print("Process completed successfully!")
     except Exception as e:
         print(f"Error during execution: {e}")
