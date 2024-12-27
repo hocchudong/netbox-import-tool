@@ -14,8 +14,7 @@ import random
 WIDTH=19
 U_HEIGHT=42
 STATUS = 'active'
-TAG_NAME_AUTO_IMPORT = "AutoImportExcel"
-50
+TAG_NAME_AUTO_IMPORT = ["AutoImportExcel", "Tag1"]
 # FILE_PATH = '/opt/netbox/netbox/plugin/netbox-import-tool/Auto_Import_Device/Version_4/Rack_M1-10.xlsx' 
 FILE_PATH = '/opt/netbox/netbox/plugin/netbox-import-tool/Auto_Import_Device/Version_4/test_date_time.xlsx' 
 # FILE_PATH = '/opt/netbox/netbox/plugin/netbox-import-tool/Auto_Import_Device/Version_4/DC3_check_23122024_test5.xlsx'
@@ -108,30 +107,35 @@ def site_check(site_name):
 # Hàm check xem có tag AutoImportExcel chưa
 def tag_check():
     # get tag 
-    tag_exist = nb.extras.tags.filter(slug="auto-import-excel")
-    # if not exist => add tag AutoImportExcel
-    if not tag_exist:
-        try:
-            new_tag = nb.extras.tags.create(
-                name=TAG_NAME_AUTO_IMPORT,
-                slug="auto-import-excel",
-                color="9e9e9e",
-                description='Create tag AutoImportExcel',
-            )
-            print(f"Create success tag {TAG_NAME_AUTO_IMPORT}")
-            # get ID tag 
-            get_tag_id()
-        except:
-            print(f"Error while create tag {TAG_NAME_AUTO_IMPORT}")
-    else:
-        # get ID tag
-        get_tag_id()
+    for tag in TAG_NAME_AUTO_IMPORT: 
+        print(tag)
+        # check exist tag 
+        tag_exist = nb.extras.tags.filter(name=tag)
+        # add tag id to array id
+        if not tag_exist:
+            try:
+                new_tag = nb.extras.tags.create(
+                    name=tag,
+                    slug=tag,
+                    color="9e9e9e",
+                    description= f'Create tag {tag}',
+                )
+                print(f"Create success tag {tag}")
+                # get ID tag 
+                tag_id = get_tag_id(tag)
+                TAG_ID_AUTO_IMPORT.append(tag_id)
+            except:
+                print(f"Error while create tag {tag}")
+        else:
+            # get ID tag
+            tag_id = get_tag_id(tag)
+            TAG_ID_AUTO_IMPORT.append(tag_id)
 
-def get_tag_id():
-    tag_auto_import_excel = nb.extras.tags.filter(name=TAG_NAME_AUTO_IMPORT)
+def get_tag_id(tag_name):
+    tag_auto_import_excel = nb.extras.tags.filter(name=tag_name)
     first_tag = next(tag_auto_import_excel, None)
     if first_tag:
-        TAG_ID_AUTO_IMPORT.append(first_tag.id)
+        return first_tag.id
 
 def device_role_check():
     device_role_names = df["Role"].dropna().tolist() # chuyển pandas thành list 
@@ -552,7 +556,7 @@ def main():
         print("Step 2: Checking NetBox connection...")
         netbox_connection_check(NetBox_URL, NetBox_Token)
 
-        print(f"Step 3: Check tag {TAG_NAME_AUTO_IMPORT}")
+        print(f"Step 3: Check tag exist")
         tag_check()
 
         print("Step 4: check site name")
